@@ -60,5 +60,11 @@ int main(void) {
             d=Path(folder);(d/'test.c').write_text(code)
             subprocess.run(['cc','-std=c11','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-I',str(ROOT/'main'),'-I',str(BOARD),str(d/'test.c'),str(BOARD/'puppy_actions.c'),str(BOARD/'puppy_native.c'),str(BOARD/'puppy_gait.c'),str(BOARD/'rig_motion.c'),'-lm','-o',str(d/'test')],check=True)
             actual=subprocess.check_output([str(d/'test')],text=True)
-        expected=json.loads((ROOT/'tests/fixtures/puppy_reference.json').read_text())['digests']
-        self.assertEqual([line.split()[1] for line in actual.splitlines()],list(expected.values()))
+        fixtures=[json.loads((ROOT/'tests/fixtures'/name).read_text()) for name in
+                  ['puppy_reference.json','puppy_reference_linux.json']]
+        self.assertEqual(fixtures[0]['source_sha256'],fixtures[1]['source_sha256'])
+        self.assertEqual(fixtures[0]['ticks_per_action'],fixtures[1]['ticks_per_action'])
+        # Both complete vectors come from independently compiled, unchanged vendor
+        # C++. Preserve strict hash matching; do not infer new baselines from the port.
+        self.assertIn([line.split()[1] for line in actual.splitlines()],
+                      [list(f['digests'].values()) for f in fixtures])

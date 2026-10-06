@@ -4,8 +4,12 @@ Usage: python tools/puppy_reference_vectors.py /path/to/puppy/xgo_action.cc
 Only regenerates a test fixture; not part of firmware build.
 """
 from pathlib import Path
-import hashlib,json,subprocess,sys,tempfile
-source=Path(sys.argv[1]); body=source.read_text()
+import argparse,hashlib,json,subprocess,tempfile
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('source',type=Path)
+parser.add_argument('--output',type=Path,default=Path(__file__).resolve().parents[1]/'tests/fixtures/puppy_reference.json')
+args=parser.parse_args()
+source=args.source; body=source.read_text()
 names=['Wave','Naughty','Lookup','Swing','Rolling','Angry','Swimming','Pee','Stretch','Bouncing','Shaking','Sit','Scratch','Hug','Keep_Sit','Sit_Reset']
 with tempfile.TemporaryDirectory() as directory:
  d=Path(directory); (d/'vendor.cc').write_text(body)
@@ -42,5 +46,5 @@ int main(){
  subprocess.run(['c++','-std=c++17','-I',str(d),str(d/'vendor.cc'),str(d/'check.cc'),'-o',str(d/'check')],check=True)
  out=subprocess.check_output([str(d/'check')],text=True)
  result={'source_sha256':hashlib.sha256(body.encode()).hexdigest(),'ticks_per_action':901,'digests':{names[int(l.split()[0])-1]:l.split()[1] for l in out.splitlines()}}
- dest=Path(__file__).resolve().parents[1]/'tests/fixtures/puppy_reference.json';dest.parent.mkdir(exist_ok=True);dest.write_text(json.dumps(result,indent=2)+'\n')
+ dest=args.output;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_text(json.dumps(result,indent=2)+'\n')
  print('Stored 16 independent vendor trajectory digests.')

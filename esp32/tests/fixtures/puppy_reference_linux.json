@@ -1,0 +1,23 @@
+{
+  "source_sha256": "9a8bd1f11d7e262cf3472de58bbdff0b5f3f30593a9ccf512435217a573b3f33",
+  "ticks_per_action": 901,
+  "digests": {
+    "Wave": "b85a162784be537b",
+    "Naughty": "1583c70f18eb418b",
+    "Lookup": "18176ec92025461c",
+    "Swing": "c226123842e948af",
+    "Rolling": "903804a0aabdd643",
+    "Angry": "ea88474e99ad4a34",
+    "Swimming": "04e3b5d53fa39ce7",
+    "Pee": "6c505bec6ff4bd2e",
+    "Stretch": "964dd68085c4defe",
+    "Bouncing": "4d0fb9ff4e9429ad",
+    "Shaking": "b27902be3beb0a11",
+    "Sit": "d44c3aa665ae436c",
+    "Scratch": "a3ab168d090a2f48",
+    "Hug": "cfbeada8b39ccbdf",
+    "Keep_Sit": "f444358b22df2514",
+    "Sit_Reset": "7eaf9bfa035bf27b"
+  },
+  "host_note": "Generated independently from unchanged vendor C++ using GCC 14.2.0 on Linux x86_64. Stretch linear interpolation truncates differently from the Apple Clang fixture at floating-point integer boundaries."
+}
