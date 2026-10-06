@@ -15,6 +15,10 @@
  */
 
 #include "noise_control.h"
+#include "sdkconfig.h"
+#if CONFIG_RIG_ENABLED
+#include "rig_robot.h"
+#endif
 #include "stack_monitor.h"
 #include "noise_upgrade.h"
 #include "noise_tunnel_internal.h"
@@ -1392,6 +1396,11 @@ static char *build_register_json(void) {
                     ota_required, ota_optional);
     }
 
+#if CONFIG_RIG_ENABLED
+    rig_robot_register_commands(commands);
+    ESP_LOGI(TAG, "RIG registration: %d tools, rig.move=%s", cJSON_GetArraySize(commands),
+             cJSON_GetObjectItem(commands, "rig.move") ? "present" : "missing");
+#endif
     cJSON_AddItemToObject(params, "commands_v2", commands);
     cJSON_AddItemToObject(root, "params", params);
 
@@ -1782,6 +1791,10 @@ static void process_inbound_body_chunk(
                             && cJSON_IsString(status)
                             && strcmp(status->valuestring, "registered") == 0
                             && !cJSON_GetObjectItem(msg, "error");
+#if CONFIG_RIG_ENABLED
+                        ESP_LOGI(TAG, "RIG server registration confirmed=%s",
+                                 s_heartbeat_registered ? "true" : "false");
+#endif
                     }
                     cJSON_Delete(msg);
                 }

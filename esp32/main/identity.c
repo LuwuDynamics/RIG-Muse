@@ -22,6 +22,9 @@
 
 #include "esp_mac.h"
 #include "esp_log.h"
+#if CONFIG_RIG_ENABLED
+#include "rig_setup.h"
+#endif
 
 static const char *TAG = "link.identity";
 
@@ -59,5 +62,9 @@ const char *identity_ble_name(void) { return s_ble_name; }
 const char *identity_mac(void) { return s_mac; }
 const char *identity_device_id(void) { return s_device_id; }
 const char *identity_sdk_token(void) {
+#if CONFIG_RIG_ENABLED
+    return rig_setup_sdk_token();
+#else
     return CONFIG_GADGET_SDK_TOKEN[0] ? CONFIG_GADGET_SDK_TOKEN : NULL;
+#endif
 }

@@ -1,0 +1,36 @@
+#pragma once
+// Verified against RIG-Omni/main/boards/puppy and the attached ESP32-S3.
+#define PUPPY_UART_TX 3
+#define PUPPY_UART_RX 38
+#define PUPPY_UART_BAUD 1000000
+#define PUPPY_CALIBRATION_ADDRESS 0xFFF000
+#define PUPPY_LCD_MOSI 20
+#define PUPPY_LCD_CLK 19
+#define PUPPY_LCD_CS 45
+#define PUPPY_LCD_DC 47
+#define PUPPY_LCD_RESET 21
+#define PUPPY_SPEAKER_BCLK 40
+#define PUPPY_SPEAKER_WS 41
+#define PUPPY_SPEAKER_DOUT 39
+
+#define PUPPY_LASER_GPIO 46
+#define PUPPY_CAMERA_XCLK 15
+#define PUPPY_CAMERA_SDA 4
+#define PUPPY_CAMERA_SCL 5
+
+#define PUPPY_CAMERA_D0 11
+#define PUPPY_CAMERA_D1 9
+#define PUPPY_CAMERA_D2 8
+#define PUPPY_CAMERA_D3 10
+#define PUPPY_CAMERA_D4 12
+#define PUPPY_CAMERA_D5 18
+#define PUPPY_CAMERA_D6 17
+#define PUPPY_CAMERA_D7 16
+#define PUPPY_CAMERA_VSYNC 6
+#define PUPPY_CAMERA_HREF 7
+#define PUPPY_CAMERA_PCLK 13
+#define PUPPY_IMU_SDA 48
+#define PUPPY_IMU_SCL 14
+#define PUPPY_MIC_BCLK 2
+#define PUPPY_MIC_WS 1
+#define PUPPY_MIC_DIN 42

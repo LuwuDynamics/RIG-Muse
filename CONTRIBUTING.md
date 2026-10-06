@@ -1,31 +1,25 @@
-# Contributing to muse-gadget-sdk
-We want to make contributing to this project as easy and transparent as
-possible.
+# Contributing
 
-## Pull Requests
-We actively welcome your pull requests.
+RIG-Muse explores expressive AI companionship on small robots. Contributions should make interactions clearer, more responsive or easier to reproduce.
 
-1. Fork the repo and create your branch from `main`.
-2. If you've added code that should be tested, add tests.
-3. If you've changed APIs, update the documentation.
-4. Ensure the test suite passes.
-5. Make sure your code lints.
-6. If you haven't already, complete the Contributor License Agreement ("CLA").
+- Use ESP-IDF 6.0.1 and the selected board's own profile.
+- Keep board-specific pins, protocol, calibration and motion under `esp32/main/boards/<board>/`. RIG-Arm needs its own backend; do not reuse Puppy packets or zero positions.
+- Expose bounded commands with observable completion/failure/cancellation. Keep a single motion owner and stop before reporting cancellation.
+- Add meaningful host tests for protocol, state transitions and failure paths; build the relevant board and describe hardware validation separately.
+- Keep upstream copyright/license notices and attribute imported source/formulas.
+- Never commit personal tokens, Wi-Fi credentials, device backups, generated configuration or private logs. Run `python3 tools/audit_public.py` before submitting.
 
-## Contributor License Agreement ("CLA")
-In order to accept your pull request, we need you to submit a CLA. You only need
-to do this once to work on any of Facebook's open source projects.
+For an issue or pull request, include the board, firmware version, expected/actual behavior, reproduction steps and redacted logs. A local catalog, service registration and a successful physical action are different checks; state which ones you verified.
 
-Complete your CLA here: <https://code.facebook.com/cla>
+## Local checks
 
-## Issues
-We use GitHub issues to track public bugs. Please ensure your description is
-clear and has sufficient instructions to be able to reproduce the issue.
+```sh
+cd esp32
+tools/board.sh rig-puppy build
+tools/rig_host_tests.sh
+tools/build_release.sh 0.1.0
+cd ..
+python3 tools/audit_public.py --history
+```
 
-Facebook has a [bounty program](https://www.facebook.com/whitehat/) for the safe
-disclosure of security bugs. In those cases, please go through the process
-outlined on that page and do not file a public issue.
-
-## License
-By contributing to muse-gadget-sdk, you agree that your contributions will be licensed
-under the LICENSE file in the root directory of this source tree.
+Original Puppy motion formulas and gait reference vectors are included, so normal builds/tests do not need a sibling RIG-Omni checkout. The upstream SDK's Linux and other-board functionality is retained; avoid unrelated changes when working on Puppy.

@@ -1,0 +1,45 @@
+name: RIG-Puppy
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rig-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    container: espressif/idf:v6.0.1
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Audit publishable files and history
+        run: python3 tools/audit_public.py --history
+      - name: Install host crypto development library
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends libmbedtls-dev pkg-config
+      - name: Build public Puppy image and package
+        working-directory: esp32
+        run: |
+          . "$IDF_PATH/export.sh" > /dev/null
+          version=0.0.0-dev
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then version="${GITHUB_REF_NAME#v}"; fi
+          tools/build_release.sh "$version"
+      - name: Run SDK and RIG host tests
+        working-directory: esp32
+        run: |
+          . "$IDF_PATH/export.sh" > /dev/null
+          tools/rig_host_tests.sh

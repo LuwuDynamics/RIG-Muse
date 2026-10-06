@@ -41,6 +41,7 @@ set(GADGET_SRCS
 
 set(GADGET_REQUIRES
     nvs_flash
+    spi_flash
     esp_wifi
     esp_event
     esp_netif
@@ -63,11 +64,28 @@ set(GADGET_REQUIRES
     mbedtls
     efuse
     muse
+    camera
     # The voice board's. Requirements are resolved before the configuration
     # is loaded, so this is unconditional; unused code is not linked.
     esp_driver_i2s
     esp_driver_pcnt
 )
+set(RIG_BOARD_INCLUDE "")
+if(CONFIG_RIG_ENABLED)
+    list(APPEND GADGET_SRCS "rig_robot.c" "rig_show.c" "rig_console.c" "rig_setup.c")
+    if(CONFIG_RIG_PARTICLE_FACE)
+        list(APPEND GADGET_SRCS "rig_pface.c")
+    endif()
+    if(CONFIG_RIG_PUPPY)
+        include("${CMAKE_CURRENT_LIST_DIR}/boards/rig_puppy/board.cmake")
+    else()
+        message(FATAL_ERROR "Enabled RIG board has no backend. Do not reuse Puppy pins/protocol.")
+    endif()
+endif()
+
+if(CONFIG_RIG_HTTP_PROXY)
+    list(APPEND GADGET_SRCS "proxy_connect.c" "proxy_tls.c")
+endif()
 
 # E-paper has its own status screen in place of led_status.c.
 if(CONFIG_HOMEHUB_LED_BACKEND_RETERMINAL_UC8179
@@ -89,6 +107,10 @@ if(CONFIG_HOMEHUB_SENSECAP_SENSORS)
     list(APPEND GADGET_SRCS "sensecap_sensors.c")
 endif()
 
+if(CONFIG_RIG_VOICE)
+    list(APPEND GADGET_SRCS "voice_muse_chat.c")
+endif()
+
 if(CONFIG_HOMEHUB_VOICE)
     list(APPEND GADGET_SRCS
         "voice.c"
@@ -100,7 +122,11 @@ endif()
 
 idf_component_register(
     SRCS ${GADGET_SRCS}
-    INCLUDE_DIRS "."
+    INCLUDE_DIRS "." ${RIG_BOARD_INCLUDE}
     PRIV_INCLUDE_DIRS "../avatar"
     REQUIRES ${GADGET_REQUIRES}
 )
+
+if(CONFIG_RIG_HTTP_PROXY)
+    target_link_libraries(${COMPONENT_LIB} INTERFACE "-Wl,--wrap=esp_tls_conn_new_sync")
+endif()

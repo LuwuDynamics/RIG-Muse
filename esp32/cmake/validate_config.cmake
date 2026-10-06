@@ -36,7 +36,9 @@ endif()
 # A token from gadgets.muse.ai is mgst_ plus 43 canonical base64url characters.
 # Manufacturer builds pair with fleet attestation instead.
 if("${CONFIG_GADGET_SDK_TOKEN}" STREQUAL "")
-    if(NOT CONFIG_HOMEHUB_PAIRING_EFUSE_AUTH)
+    if(CONFIG_RIG_ENABLED)
+        message(STATUS "RIG image has no embedded SDK token; provision your own over USB before pairing.")
+    elseif(NOT CONFIG_HOMEHUB_PAIRING_EFUSE_AUTH)
         message(WARNING
             "No SDK token: set CONFIG_GADGET_SDK_TOKEN (idf.py menuconfig > ESP32 Device SDK) "
             "to the token from gadgets.muse.ai. Gadgets without one will stop pairing.")

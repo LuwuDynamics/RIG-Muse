@@ -1,0 +1,14 @@
+RIG-Muse
+Maintained by LuwuDynamics.
+
+Based on Muse Gadget SDK by Meta Platforms, Inc. and affiliates.
+Upstream: https://github.com/facebookincubator/muse-gadget-sdk
+Baseline commit: 693cde9a884ad1edc87251b9f8944815f8de4809
+Upstream copyright and Apache-2.0 license notices are retained.
+
+Puppy hardware definitions, motion formulas and gait behavior are adapted
+from Luwu's RIG-Omni Puppy implementation. Imported formula provenance is
+recorded in esp32/main/boards/rig_puppy/puppy_native.c and test fixtures.
+
+Third-party source and artwork retain their original license scopes.
+See docs/THIRD_PARTY.md and README.upstream.md.

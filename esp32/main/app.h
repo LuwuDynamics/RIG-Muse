@@ -60,7 +60,7 @@ bool app_confirm_pairing_press(void);
 void app_reset_setup_async(void);
 #endif
 
-#if CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE
+#if CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE || CONFIG_RIG_VOICE
 // Looks up a VM credential from the paired account (want_vm: a VM id, or empty
 // for the preferred VM). *vm_token is heap; free() it.
 bool app_hatch_vm_credentials(const char *want_vm, char *vm_id, size_t id_cap,

@@ -27,5 +27,6 @@ const char *identity_node_id(void);
 const char *identity_ble_name(void);
 const char *identity_mac(void);
 const char *identity_device_id(void);
-// The maker's SDK token (CONFIG_GADGET_SDK_TOKEN), or NULL when the build has none.
+// Maker SDK token: local USB settings on RIG, otherwise CONFIG_GADGET_SDK_TOKEN.
+// NULL when no token is configured. Never expose its value in status/log output.
 const char *identity_sdk_token(void);

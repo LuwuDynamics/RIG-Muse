@@ -14,6 +14,88 @@
 
 menu "ESP32 Device SDK"
 
+    config RIG_ENABLED
+        bool "Enable RIG robot board backend"
+        depends on IDF_TARGET_ESP32S3
+        default n
+
+    choice RIG_BOARD_TYPE
+        prompt "RIG board type"
+        depends on RIG_ENABLED
+        default RIG_PUPPY
+        help
+            Select one backend. Board-specific pins, protocol, calibration and
+            actions are isolated under main/boards; never mix device backends.
+
+        config RIG_PUPPY
+            bool "RIG-Puppy (five-joint dog)"
+            help
+                Existing calibration is read-only. Includes native Puppy
+                actions, expressions, sound effects and cancellable jobs.
+    endchoice
+
+    config RIG_VOICE
+        bool
+        depends on RIG_PUPPY
+        default y
+
+    config RIG_PARTICLE_FACE
+        bool "Draw the RIG face as stardust particles"
+        depends on RIG_PUPPY
+        default y
+        help
+            Eyes, brows and mouth are made of about 340 glowing particles
+            (rig_pface.c). A change of face scatters them and pulls them into
+            the new one, and the rest orbit as dust. Needs about 60 KB of PSRAM;
+            if that cannot be allocated at boot the original flat eyes are drawn.
+            Turn it off to always draw the original face.
+
+    config RIG_PARTICLE_FACE_BENCH
+        bool "Measure the particle face's CPU cost once after boot (debug)"
+        depends on RIG_PARTICLE_FACE
+        default n
+        help
+            About 10 s after boot, times the face's physics and drawing (and the
+            original flat eyes for comparison) with interrupts off on one core, and
+            logs it. That is up to 55 ms with interrupts off, ten times, so leave
+            it off outside bench testing.
+
+    choice RIG_PARTICLE_FACE_STYLE
+        prompt "Particle face reassembly style"
+        depends on RIG_PARTICLE_FACE
+        default RIG_PARTICLE_FACE_VORTEX
+
+        config RIG_PARTICLE_FACE_VORTEX
+            bool "Vortex: spiral out, spiral in"
+        config RIG_PARTICLE_FACE_BURST
+            bool "Burst: quick radial pop"
+        config RIG_PARTICLE_FACE_DUST
+            bool "Dust: slow and floating"
+    endchoice
+
+    config RIG_HTTP_PROXY
+        bool "Include optional LAN HTTP CONNECT proxy for RIG Muse TLS"
+        depends on RIG_ENABLED
+        default n
+        help
+            An empty host with no saved USB proxy setting uses direct TLS.
+            Configure an endpoint over USB or with the host/port below.
+            When enabled, routes synchronous TLS (Muse API and Noise WebSocket) through a
+            LAN HTTP CONNECT proxy. TLS validation remains end-to-end.
+            Does not support async TLS, proxy authentication or UDP tunnelling.
+            Proxy failure never falls back to direct TLS.
+
+    config RIG_HTTP_PROXY_HOST
+        string "LAN proxy IPv4 address or hostname"
+        depends on RIG_HTTP_PROXY
+        default ""
+
+    config RIG_HTTP_PROXY_PORT
+        int "LAN proxy port"
+        depends on RIG_HTTP_PROXY
+        range 1 65535
+        default 7897
+
     config GADGET_PRODUCT_NAME
         string "Human-visible product name for log messages"
         default "Muse Gadget"
@@ -31,6 +113,8 @@ menu "ESP32 Device SDK"
             Every gadget needs one to pair. The device hands it to the Muse
             app inside the encrypted pairing session and includes it when it
             refreshes its device token.
+            Public RIG images may leave this empty and provision a per-device
+            token through the local USB setup tool before pairing.
 
     config HOMEHUB_WIFI_SSID
         string "WiFi SSID override (dev iteration)"

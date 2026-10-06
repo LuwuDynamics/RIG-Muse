@@ -16,6 +16,14 @@ limitations under the License.
 
 # ESP32 Device SDK
 
+**Local experimental port:** [RIG-Puppy native performances](README_RIG.md)
+RIG-Puppy also supports `camera.capture` (GC0308 still JPEG) and `rig.laser` (on/off/mode cycle). See [RIG integration](README_RIG.md) for commands and verification.
+It adds finite forward/backward walking and left/right turns, local IMU reactions,
+voltage-based battery estimates, and double-click BOOT voice notes to Muse (no TTS).
+adds direct Muse commands for status, performances and stop.
+It supports paired Muse control, animated eyes, local sound effects, calibrated standing preparation and all 16 Puppy actions adapted from RIG-Omni. Robot backends are isolated under [main/boards](main/boards/README.md); the older servo-5 diagnostic remains available separately.
+See the port notes for verification evidence and the remaining hardware checks.
+
 Flash this open source firmware onto any ESP32-compatible board to connect
 Muse to your home Wi-Fi. On boards with the home-network tunnel, Muse can reach
 the devices you already own and anything you build with a local HTTP API.

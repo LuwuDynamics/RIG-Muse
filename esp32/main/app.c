@@ -15,6 +15,10 @@
  */
 
 #include "app.h"
+#include "sdkconfig.h"
+#if CONFIG_RIG_ENABLED
+#include "rig_robot.h"
+#endif
 #include "stack_monitor.h"
 
 #include <string.h>
@@ -30,7 +34,7 @@
 #include "cJSON.h"
 
 #include "esp_heap_caps.h"
-#if CONFIG_MUSE_WATCHER_CAMERA
+#if CONFIG_MUSE_WATCHER_CAMERA || CONFIG_RIG_ENABLED
 #include "freertos/idf_additions.h"
 #endif
 #include "esp_timer.h"
@@ -43,6 +47,9 @@
 #include "lwip/ip4_addr.h"
 
 #include "identity.h"
+#if CONFIG_RIG_ENABLED
+#include "rig_setup.h"
+#endif
 #include "config_store.h"
 #include "wifi_mgr.h"
 #include "wifi_known.h"
@@ -1575,6 +1582,24 @@ static void watcher_camera_capture_task(void *arg) {
 }
 #endif
 
+#if CONFIG_RIG_ENABLED
+// Capture/compress off the Noise control task so stop/disconnect stay responsive.
+static atomic_bool s_rig_camera_busy;
+typedef struct {
+    noise_ctrl_session_generation_t generation;
+    char request_id[64];
+} rig_camera_args_t;
+static void rig_camera_task(void *arg) {
+    rig_camera_args_t *a=arg;
+    cJSON *result=rig_robot_command("camera.capture",NULL);
+    noise_ctrl_send_command_result(a->generation,a->request_id,result);
+    free(a);
+    atomic_store(&s_rig_camera_busy,false);
+    stack_monitor_record(NULL);
+    vTaskDeleteWithCaps(NULL);
+}
+#endif
+
 // ---- WebSocket command callbacks -------------------------------------------
 
 typedef enum {
@@ -1829,6 +1854,22 @@ static cJSON *bug_report_command(
 static cJSON *on_ws_command(
     const char *command, cJSON *params, const char *request_id,
     noise_ctrl_session_generation_t session_generation) {
+#if CONFIG_RIG_ENABLED
+    if(!strcmp(command,"camera.capture") || !strcmp(command,"rig.camera")) {
+        if(atomic_exchange(&s_rig_camera_busy,true))return command_error("camera_busy","a capture is already running");
+        rig_camera_args_t *a=calloc(1,sizeof(*a));
+        if(!a){atomic_store(&s_rig_camera_busy,false);return command_error("out_of_memory","camera request allocation failed");}
+        a->generation=session_generation;
+        strncpy(a->request_id,request_id,sizeof(a->request_id)-1);
+        if(xTaskCreateWithCaps(rig_camera_task,"rig_camera",8192,a,3,NULL,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT)!=pdPASS) {
+            free(a);atomic_store(&s_rig_camera_busy,false);
+            return command_error("out_of_memory","camera worker allocation failed");
+        }
+        cJSON *async=cJSON_CreateObject();cJSON_AddBoolToObject(async,"_async",true);return async;
+    }
+    cJSON *rig_result = rig_robot_command(command, params);
+    if (rig_result) return rig_result;
+#endif
     if (strcmp(command, "device.list_vms") == 0) {
         return list_vms_command();
     }
@@ -2093,6 +2134,9 @@ static void open_setup_window(const char *reason) {
 }
 
 static void on_button_short_press(void) {
+#if CONFIG_RIG_ENABLED
+    rig_robot_stop();
+#endif
     factory_test_on_button_press();
 
     if (link_pairing_confirmation_required()) {
@@ -2117,6 +2161,13 @@ static void on_button_short_press(void) {
 }
 
 static void on_button_double_press(void) {
+#if CONFIG_RIG_ENABLED
+    if(config_setup_complete() && !link_pairing_confirmation_required()) {
+        cJSON *p=cJSON_CreateObject();cJSON_AddStringToObject(p,"operation","toggle");
+        cJSON *r=rig_robot_command("rig.voice",p);cJSON_Delete(r);cJSON_Delete(p);return;
+    }
+    rig_robot_stop();
+#endif
     ESP_LOGI(TAG, "button double-press ignored");
 }
 
@@ -2231,7 +2282,7 @@ bool app_wifi_nap(void) {
 }
 #endif  // CONFIG_MUSE_ENABLED
 
-#if CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE
+#if CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE || CONFIG_RIG_VOICE
 // Muse's and the voice board's own Hatch session reach the VM with these.
 typedef struct {
     const char *want_vm;
@@ -2302,7 +2353,7 @@ bool app_hatch_vm_credentials(const char *want_vm, char *vm_id, size_t id_cap,
     *vm_token = req.vm_token;
     return req.ok;
 }
-#endif  // CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE
+#endif  // CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE || CONFIG_RIG_VOICE
 
 #if CONFIG_MUSE_ENABLED
 void app_ble_companion_set(bool advertise) {
@@ -2349,6 +2400,10 @@ static void ws_unpaired_task(void *arg) {
 }
 
 static void on_ws_control_status(const char *status) {
+#if CONFIG_RIG_ENABLED
+    // Unknown or transitional connection states also cancel a running job.
+    rig_robot_set_connected(strcmp(status, "ws_connected") == 0);
+#endif
     ble_server_send_status(status);
     ui_set_status(status);
     if (strcmp(status, "ws_connected") == 0) {
@@ -2470,6 +2525,11 @@ void app_run(void) {
     }
 
     config_store_init();
+#if CONFIG_RIG_ENABLED
+    rig_setup_init();
+    rig_robot_init();
+    rig_console_init();
+#endif
     wifi_known_init();
 
     identity_init();
@@ -2492,7 +2552,7 @@ void app_run(void) {
     ESP_LOGI(TAG, "  Region:   %s", have_region ? region : "(none)");
     ESP_LOGI(TAG, "  Verify:   %s", link_pairing_sign_factory_test());
     // Only the hint gadgets.muse.ai displays; the full token is never logged.
-    ESP_LOGI(TAG, "  SDK token:  %.12s", identity_sdk_token() ? identity_sdk_token() : "(none)");
+    ESP_LOGI(TAG, "  SDK token:  %s", identity_sdk_token() ? "configured" : "not configured");
     ESP_LOGI(TAG, "========================");
 
     link_pairing_init(identity_node_id(), identity_device_id(), identity_mac(),

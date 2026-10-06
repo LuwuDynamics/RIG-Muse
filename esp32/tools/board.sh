@@ -19,6 +19,7 @@
 # Usage: board.sh BOARD [build|flash|monitor|flash-monitor] [PORT]
 #
 #   devkit     ESP32-C5 DevKitC-1 (status LED, no display)
+#   rig-puppy  RIG-Puppy robot backend (16 actions, expressions and effects)
 #   ideaspark  ideaspark ESP32 with a 1.9 inch ST7789 display
 #   sensecap-indicator
 #              Seeed SenseCAP Indicator (ESP32-S3) with a 4 inch display
@@ -33,7 +34,7 @@
 # matching serial port, if there is exactly one.
 set -euo pipefail
 
-usage() { sed -n '16,33p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { sed -n '16,34p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
 [ $# -ge 1 ] || usage 2
 case "$1" in -h|--help) usage ;; esac
@@ -46,6 +47,12 @@ DEFAULTS="sdkconfig.defaults"
 
 # Board: target, overlay (loaded last) and the ports its USB bridge shows up as.
 case "$BOARD" in
+  rig-puppy)
+    TARGET=esp32s3
+    DEFAULTS="$DEFAULTS;devices/sdkconfig.rig-puppy"
+    # Observed Puppy USB-UART bridge: 1a86:55d3, USB Single Serial.
+    PORTS="/dev/cu.usbserial-* /dev/cu.wchusbserial* /dev/cu.usbmodem* /dev/ttyUSB* /dev/ttyACM*"
+    ;;
   devkit)
     TARGET=esp32c5
     PORTS="/dev/cu.usbmodem* /dev/ttyACM*"

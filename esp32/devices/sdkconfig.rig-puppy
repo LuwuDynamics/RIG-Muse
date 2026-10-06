@@ -1,0 +1,33 @@
+# RIG-Puppy native Muse performance profile. Sources: sibling RIG-Omni
+# sdkconfig; main/boards/common/config.h; main/boards/puppy/board_config.h.
+# ESP32-S3, 16 MB flash, octal PSRAM (capacity detected at boot).
+# UART0 console: USB-UART bridge, board identity must be checked before flash.
+# GPIO19/20 belong to the LCD; native USB Serial/JTAG must not own them.
+# Load after sdkconfig.defaults. Expressions/sound effects, GC0308 still camera,
+# QMI8658C IMU and on-demand I2S1 microphone (no TTS playback).
+CONFIG_IDF_TARGET="esp32s3"
+CONFIG_RIG_ENABLED=y
+CONFIG_RIG_PUPPY=y
+# Include optional proxy support; an empty host means direct connection.
+CONFIG_RIG_HTTP_PROXY=y
+CONFIG_RIG_HTTP_PROXY_HOST=""
+CONFIG_GADGET_PRODUCT_NAME="RIG-Puppy Muse (experimental)"
+CONFIG_HOMEHUB_BLE_NAME_SUFFIX="-RIG"
+CONFIG_HOMEHUB_BUTTON_GPIO=0
+CONFIG_HOMEHUB_LED_BACKEND_NONE=y
+CONFIG_HOMEHUB_TUNNEL=n
+CONFIG_HOMEHUB_OTA_ENABLED=n
+CONFIG_HOMEHUB_SUPPORT_BUG_REPORT=n
+CONFIG_HOMEHUB_NVS_ENCRYPTION=n
+CONFIG_HOMEHUB_PAIRING_EFUSE_AUTH=n
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="16MB"
+CONFIG_ESPTOOLPY_FLASHMODE_DIO=y
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_MODE_QUAD=n
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_BT_NIMBLE_MEM_ALLOC_MODE_EXTERNAL=y
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_rig_puppy.csv"

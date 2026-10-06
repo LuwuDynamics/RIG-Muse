@@ -88,7 +88,11 @@ size_t muse_settings_hatch_token_len(void) {
 
 // No screen to show replies on: anything played goes to the speaker.
 bool muse_settings_speaker_on(void) {
+#if CONFIG_RIG_VOICE
+    return false; // Puppy keeps sound effects; no TTS.
+#else
     return true;
+#endif
 }
 
 // No screen either, so reply text is never shown; Muse's default page.

@@ -45,6 +45,7 @@ before adding a feature to one.
 
 | Board | Target | Overlay(s) after `sdkconfig.defaults` | Helper |
 |---|---|---|---|
+| RIG-Puppy (experimental) | `esp32s3` | `devices/sdkconfig.rig-puppy` | `tools/board.sh rig-puppy` |
 | ESP32-C5 DevKitC-1 (default) | `esp32c5` | none | `tools/board.sh devkit` |
 | ideaspark ESP32 + 1.9" ST7789 | `esp32` | `devices/sdkconfig.ideaspark` | `tools/board.sh ideaspark` |
 | Seeed SenseCAP Indicator | `esp32s3` | `devices/sdkconfig.sensecap-indicator` | `tools/board.sh sensecap-indicator` |
@@ -77,6 +78,11 @@ Account > SDK tokens). Ask for it, then set `CONFIG_GADGET_SDK_TOKEN="mgst_…"`
 in that build directory's `sdkconfig` (or with `idf.py menuconfig`) before
 building. Without it the build warns, and the gadget will stop pairing once
 Muse requires tokens. Never commit the token or print it in full.
+
+RIG public releases intentionally omit the build-time token. Use
+`tools/build_release.sh VERSION`, its separate `build-rig-puppy-release/`
+configuration, and local USB provisioning (`tools/provision_rig.py --sdk-token`)
+before pairing. Never package a personal build or NVS dump as a public release.
 
 ### DevKitC-1 (default)
 
