@@ -25,6 +25,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Trust the checked-out workspace in this container
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Audit publishable files and history
         run: python3 tools/audit_public.py --history
       - name: Install host crypto development library
