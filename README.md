@@ -2,7 +2,7 @@
 
 **Give Muse a robot body.** Native ESP32 firmware for the RIG-Puppy robot dog.
 
-[中文说明](README.zh-CN.md) · [Download firmware](https://github.com/LuwuDynamics/RIG-Muse/releases) · [Installation](docs/FLASHING.md) · [Technical reference](esp32/README_RIG.md)
+[中文说明](README.zh-CN.md) · [Build from source](docs/FLASHING.md) · [Development guide](docs/DEVELOPMENT.md) · [Technical reference](esp32/README_RIG.md)
 
 <p align="center">
   <a href="docs/media/puppy-greeting.mp4"><img src="docs/media/puppy-greeting.gif" width="300" alt="Puppy raises a front paw, waves and returns to standing"></a>
@@ -11,7 +11,7 @@
 
 RIG-Muse connects Muse to a small physical companion that can greet you, move, show expressions, react to handling and share its camera view. It runs directly on the Puppy's ESP32-S3, using Meta's open-source [Muse Gadget SDK](https://github.com/facebookincubator/muse-gadget-sdk), without a separate Linux gateway.
 
-This independent project is maintained by **LuwuDynamics**. It is not an official Meta robot product. The current release is an **experimental developer preview for RIG-Puppy**.
+This independent project is maintained by **LuwuDynamics**. It is not an official Meta robot product. The current implementation is **experimental and targets RIG-Puppy**. This repository distributes source code; users configure and compile their own builds.
 
 ## Our goal
 
@@ -39,28 +39,49 @@ We also want a reusable foundation: Muse handles conversation and tool selection
 
 You need a **RIG-Puppy** with ESP32-S3, 16 MB flash, octal PSRAM and valid existing servo calibration; a USB data cable; a Muse account/app with community device support; your own [SDK token](https://gadgets.muse.ai/settings/sdk-tokens); and a 2.4 GHz Wi-Fi network that lets Puppy reach Muse. Review the [Gadget SDK Terms](https://gadgets.muse.ai/sdk-terms).
 
-### 1. Install firmware
+### 1. Clone and build
 
-Download and extract `rig-muse-puppy-<version>.zip` from [Releases](https://github.com/LuwuDynamics/RIG-Muse/releases). From the extracted directory:
+Install **ESP-IDF v6.0.1**, then activate that environment:
 
 ```sh
+git clone https://github.com/LuwuDynamics/RIG-Muse.git
+cd RIG-Muse/esp32
+. "$IDF_PATH/export.sh"
 python3 -m pip install 'esptool>=5,<6' pyserial
-python3 flash.py --port YOUR_PUPPY_PORT
+tools/board.sh rig-puppy build
 ```
 
-Select the actual Puppy USB UART port: `/dev/cu.usbmodem...` on macOS, `/dev/ttyACM0` or `/dev/ttyUSB0` on Linux, or `COM5` on Windows. Console baud is 115200; flashing defaults to 230400.
+The Puppy profile creates `build-rig-puppy/sdkconfig`. No token or personal network settings are committed. The default proxy host is empty, so a new device uses direct access.
 
-First installation replaces the original firmware and partition layout. Save a full original flash backup if you want to restore it later. The installer avoids the calibration sector at `0xFFF000` and verifies it after writing. It does not calibrate servos or start motion. Never install Puppy firmware on Arm. See [the installation guide](docs/FLASHING.md).
+### 2. Configure, rebuild and flash your own build
 
-### 2. Supply your own token locally
-
-Public firmware embeds **no SDK token, Wi-Fi credentials, pairing identity or personal proxy endpoint**. Before pairing:
+Edit your local configuration with:
 
 ```sh
-python3 provision_rig.py --port YOUR_PUPPY_PORT --sdk-token
+idf.py -B build-rig-puppy \
+  -DSDKCONFIG=build-rig-puppy/sdkconfig menuconfig
 ```
 
-The token prompt is hidden, so the token does not enter command-line arguments or shell history. Settings are saved on this Puppy and applied after restart. Setup replies never return the token or a token prefix.
+Under **ESP32 Device SDK**, set `CONFIG_GADGET_SDK_TOKEN` to your own token. Configure `CONFIG_RIG_HTTP_PROXY_HOST` and `CONFIG_RIG_HTTP_PROXY_PORT` only if your network needs a LAN proxy; otherwise leave the host empty. These settings can also be edited directly in the ignored `build-rig-puppy/sdkconfig`. Keep real values out of shared source files and commits.
+
+```sh
+tools/board.sh rig-puppy build
+tools/rig_host_tests.sh
+python3 tools/prepare_flash.py
+python3 build-rig-puppy/flash-rig/flash.py --port YOUR_PUPPY_PORT
+```
+
+Select the actual Puppy USB UART port: `/dev/cu.usbmodem...` or `/dev/cu.usbserial...` on macOS, `/dev/ttyACM0` or `/dev/ttyUSB0` on Linux, or `COM5` on Windows. Console baud is 115200; flashing defaults to 230400.
+
+First installation replaces the original firmware and partition layout. The local installer compares original calibration at `0xFFF000` before and after flashing and avoids NVS writes. Keep an original device backup privately if restoration is needed. Never install Puppy code on Arm. See the [complete source build guide](docs/FLASHING.md).
+
+You may leave the compiled token empty and enter it after flashing through a hidden local USB prompt:
+
+```sh
+python3 tools/provision_rig.py --port YOUR_PUPPY_PORT --sdk-token
+```
+
+Personal binaries may contain credentials; keep generated files private. This project does not provide prebuilt binary downloads or GitHub Releases.
 
 ### 3. Pair in Muse
 
@@ -80,42 +101,44 @@ Voice sending requires a working Muse connection. The recording, upload and feed
 
 ## Optional LAN proxy
 
-**Public firmware defaults to a direct connection. A proxy is optional.** Proxy support is included, but no endpoint is configured. Nothing depends on the maintainer's computer or network.
+**The source defaults use direct access. A LAN proxy is optional.** Set your own host/port in the local build configuration before compiling, or use the USB override below after flashing. No maintainer network address is configured.
 
 ```sh
-python3 provision_rig.py --port YOUR_PUPPY_PORT --proxy YOUR_LAN_PROXY_HOST:7897
+python3 tools/provision_rig.py --port YOUR_PUPPY_PORT --proxy YOUR_LAN_PROXY_HOST:7897
 # Disable the proxy:
-python3 provision_rig.py --port YOUR_PUPPY_PORT --direct
+python3 tools/provision_rig.py --port YOUR_PUPPY_PORT --direct
 ```
 
 For a proxy on a Mac/PC, keep the computer awake and the proxy running. Enable LAN access, bind the HTTP/mixed listener to a LAN-accessible interface and permit its port in the firewall. Puppy must be able to reach that host; using the same Wi-Fi/LAN is simplest. `127.0.0.1` refers to Puppy itself.
 
+Saved USB settings override compiled settings and survive reflashing. Use `--direct` to force direct access or `--clear` to remove the USB override and restore compiled defaults after reboot.
+
 HTTP CONNECT carries Muse API and synchronous TLS/WebSocket traffic, while retaining end-to-end hostname/certificate verification. SOCKS5, proxy authentication, UDP tunneling and a device-wide VPN are not implemented. An enabled proxy never silently falls back to direct access on failure. A phone VPN does not automatically carry Puppy traffic.
 
-## Build and develop
+## Develop with an AI coding assistant
 
-Use **ESP-IDF 6.0.1**:
+We recommend **Codex, Claude Code, or another repository-aware coding assistant** for environment setup, code changes and verification. The repository includes maintained project context:
 
-```sh
-git clone https://github.com/LuwuDynamics/RIG-Muse.git
-cd RIG-Muse/esp32
-. "$IDF_PATH/export.sh"
-tools/board.sh rig-puppy build
-tools/rig_host_tests.sh
-# Separate, credential-free release build:
-tools/build_release.sh 0.1.0
-```
+- [AGENTS.md](AGENTS.md): architecture, build commands, validation and device-handling rules for coding agents.
+- [CLAUDE.md](CLAUDE.md): Claude Code entry point, referencing the same project instructions.
+- [Development guide](docs/DEVELOPMENT.md): configuration locations, capability extension points and example task briefs.
+- [ESP32 SDK instructions](esp32/AGENTS.md): detailed upstream SDK workflows.
 
-Normal board builds support USB provisioning too. Personal builds may use `menuconfig` to set a build-time SDK token/proxy fallback; keep their generated configuration and binaries private. Release builds use `build-rig-puppy-release/`, check that personal settings are empty and package only explicit flash images into the ignored `dist/` directory. NVS, full device dumps, ELF and personal `sdkconfig` are never release assets.
+Open the repository in your assistant and ask:
+
+> Read AGENTS.md and docs/FLASHING.md. Configure the ESP-IDF 6.0.1 environment, build RIG-Puppy from source, and show me how to edit my local token and optional proxy settings without exposing them. Report build and test results before flashing.
+
+For code changes, ask the assistant to inspect the relevant backend, implement the behavior, run the appropriate checks and describe what still needs hardware validation. Credentials should be entered locally, never pasted into an assistant conversation.
 
 | Path | Purpose |
 |---|---|
-| `esp32/main/boards/rig_puppy/` | Puppy hardware and device capabilities |
+| `esp32/main/boards/rig_puppy/` | Puppy hardware, protocol, actions, sensors and media |
 | `esp32/main/rig_setup.*` | Local USB provisioning and boot-time settings |
 | `esp32/main/rig_show.*`, `rig_pface.*` | Expression/sound synthesis and particle face engine |
-| `esp32/devices/sdkconfig.rig-puppy*` | Board and public release profiles |
+| `esp32/devices/sdkconfig.rig-puppy` | Shared board defaults; personal settings belong in local generated config |
+| `esp32/main/Kconfig.projbuild` | Available configuration options |
 | `esp32/tests/` | SDK and RIG host tests |
-| `docs/` | Installation, provenance and edited demonstration media |
+| `docs/` | Source build instructions, development, provenance and demo media |
 | `README.upstream.md`, `linux/`, `skills/` | Preserved upstream SDK documentation/functionality |
 
 The firmware starts without an automatic motion routine, reads calibration without rewriting it, executes one body action at a time and stops on cancellation or stale feedback. Torque is telemetry, not software overload protection. Host tests and local catalog checks do not prove cloud registration or successful physical behavior; use the [technical reference](esp32/README_RIG.md) and validate on the intended board.

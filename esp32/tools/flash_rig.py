@@ -35,7 +35,7 @@ def main():
     identity = subprocess.run([*base, "flash-id"], capture_output=True, text=True, check=True)
     print(identity.stdout)
     if "Detected flash size: 16MB" not in identity.stdout:
-        raise RuntimeError("This release requires a 16 MB RIG-Puppy")
+        raise RuntimeError("This build requires a 16 MB RIG-Puppy")
     # Logs remain local; no calibration values or credentials are uploaded.
     with tempfile.TemporaryDirectory() as tmp:
         p = Path(tmp)

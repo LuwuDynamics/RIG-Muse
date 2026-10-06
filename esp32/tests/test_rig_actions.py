@@ -49,7 +49,8 @@ int main(void) {
   puppy_native_t c;puppy_native_init(&c);uint64_t h=14695981039346656037ULL;
   for(unsigned t=0;t<=900;++t) {
    puppy_native_tick(id,&c);
-   for(int i=0;i<5;++i)h=hash_value(h,c.offsets[i]);h=hash_value(h,c.speed);
+   for(int i=0;i<5;++i){h=hash_value(h,c.offsets[i]);}
+   h=hash_value(h,c.speed);
   }
   printf("%u %016llx\n",id,(unsigned long long)h);
  }

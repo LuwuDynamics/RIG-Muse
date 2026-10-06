@@ -1,4 +1,4 @@
-"""Public image provisioning: token privacy, persistence, direct/proxy and failures."""
+"""Local device provisioning: token privacy, persistence, direct/proxy and failures."""
 import os
 from pathlib import Path
 import shlex

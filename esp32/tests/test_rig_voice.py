@@ -15,6 +15,7 @@ class RigVoiceTest(unittest.TestCase):
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "host_compat.h"
 #define ESP_OK 0
 #define MALLOC_CAP_SPIRAM 1
 #define MALLOC_CAP_8BIT 2
@@ -43,7 +44,9 @@ static int i2s_channel_read(void *r,void *buffer,size_t n,size_t *got,int timeou
 }
 void muse_hatch_turn_begin(void){++begins;}
 size_t muse_hatch_turn_audio_wait(const int16_t *p,size_t n,int wait){assert(p[0]==1000);now+=wait;
- if(scenario==2)return 0;if(scenario==3){atomic_store(&cancelled,true);return 0;}uploaded+=n;return n;
+ if(scenario==2){return 0;}
+ if(scenario==3){atomic_store(&cancelled,true);return 0;}
+ uploaded+=n;return n;
 }
 void muse_hatch_turn_end(void){++ends;}
 void muse_hatch_turn_cancel(void){++cancels;}
@@ -67,5 +70,5 @@ int main(void){assert(!strcmp(names[SENT],"sent"));
 '''
   with tempfile.TemporaryDirectory() as d:
    d=Path(d);(d/'test.c').write_text(code)
-   subprocess.run(['cc','-std=c11','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-I',str(ROOT/'components/muse'),str(d/'test.c'),'-lm','-o',str(d/'test')],check=True)
+   subprocess.run(['cc','-std=c11','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-I',str(ROOT/'tests'),'-I',str(ROOT/'components/muse'),str(d/'test.c'),'-lm','-o',str(d/'test')],check=True)
    subprocess.run([str(d/'test')],check=True)

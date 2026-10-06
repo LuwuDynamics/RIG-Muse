@@ -113,7 +113,7 @@ menu "ESP32 Device SDK"
             Every gadget needs one to pair. The device hands it to the Muse
             app inside the encrypted pairing session and includes it when it
             refreshes its device token.
-            Public RIG images may leave this empty and provision a per-device
+            RIG builds may leave this empty and provision a per-device
             token through the local USB setup tool before pairing.
 
     config HOMEHUB_WIFI_SSID

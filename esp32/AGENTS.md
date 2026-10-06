@@ -73,16 +73,20 @@ like most WS2812s: turn the option off in `idf.py menuconfig`, or in
 
 ## Build
 
-Every build needs the user's SDK token (`mgst_…`, from gadgets.muse.ai >
-Account > SDK tokens). Ask for it, then set `CONFIG_GADGET_SDK_TOKEN="mgst_…"`
-in that build directory's `sdkconfig` (or with `idf.py menuconfig`) before
-building. Without it the build warns, and the gadget will stop pairing once
-Muse requires tokens. Never commit the token or print it in full.
+For RIG-Puppy, follow the repository root `AGENTS.md` and
+`../docs/FLASHING.md`. This repository distributes source only. Build with
+`tools/board.sh rig-puppy build`; configure your own SDK token in the ignored
+`build-rig-puppy/sdkconfig` through `menuconfig`, or leave it empty and use
+`tools/provision_rig.py --sdk-token` after flashing. Never request a token in
+chat, print it, or commit a generated configuration or personal binary.
+Prepare local flash images with `python3 tools/prepare_flash.py`; the generated
+`build-rig-puppy/flash-rig/flash.py` validates the layout/hashes and compares
+calibration before and after flashing. No release upload or distribution step
+is part of this workflow.
 
-RIG public releases intentionally omit the build-time token. Use
-`tools/build_release.sh VERSION`, its separate `build-rig-puppy-release/`
-configuration, and local USB provisioning (`tools/provision_rig.py --sdk-token`)
-before pairing. Never package a personal build or NVS dump as a public release.
+Other boards use the user's SDK token (`mgst_…`, from gadgets.muse.ai >
+Account > SDK tokens), set locally in their build directory's `sdkconfig`
+(or with `idf.py menuconfig`). Never commit or print the token.
 
 ### DevKitC-1 (default)
 

@@ -17,9 +17,11 @@ For an issue or pull request, include the board, firmware version, expected/actu
 cd esp32
 tools/board.sh rig-puppy build
 tools/rig_host_tests.sh
-tools/build_release.sh 0.1.0
+python3 tools/prepare_flash.py
 cd ..
 python3 tools/audit_public.py --history
 ```
 
 Original Puppy motion formulas and gait reference vectors are included, so normal builds/tests do not need a sibling RIG-Omni checkout. The upstream SDK's Linux and other-board functionality is retained; avoid unrelated changes when working on Puppy.
+
+This repository distributes source only. Do not attach personal binaries or create a firmware Release. Coding assistants should start with [AGENTS.md](AGENTS.md) and [the development guide](docs/DEVELOPMENT.md); Claude Code also has a [CLAUDE.md](CLAUDE.md) entry point.

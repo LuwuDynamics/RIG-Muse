@@ -11,11 +11,11 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class ReleaseInstallerTest(unittest.TestCase):
+class LocalInstallerTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.folder = Path(self.tmp.name)
-        spec = importlib.util.spec_from_file_location("rig_flash_test", ROOT / "tools/flash_release.py")
+        spec = importlib.util.spec_from_file_location("rig_flash_test", ROOT / "tools/flash_rig.py")
         self.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.module)
         self.module.__file__ = str(self.folder / "flash.py")

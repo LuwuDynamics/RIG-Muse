@@ -82,12 +82,12 @@ Replies start with `@rig `. Body commands still require a Muse connection, valid
 
 ## Expressions and new boards
 
-`CONFIG_RIG_PARTICLE_FACE` selects the pure-C particle engine; failed allocation falls back to flat eyes. Vortex, burst and dust reassembly styles are selectable. The face benchmark option is debug-only and disabled in public releases. Sound effects are synthesized, without TTS.
+`CONFIG_RIG_PARTICLE_FACE` selects the pure-C particle engine; failed allocation falls back to flat eyes. Vortex, burst and dust reassembly styles are selectable. The face benchmark option is debug-only and disabled by default. Sound effects are synthesized, without TTS.
 
 See [board architecture](main/boards/README.md) for another backend. Arm needs its own UART protocol, endianness, joint limits, calibration interpretation and IK; [the Arm placeholder](main/boards/rig_arm/README.md) is not firmware support.
 
 ## Build and validation
 
-Use ESP-IDF 6.0.1, `tools/board.sh rig-puppy build` and `tools/rig_host_tests.sh`. Public packages use `tools/build_release.sh VERSION`, a separate configuration, no embedded token/Wi-Fi/proxy address, and the installer/manifest described in [FLASHING.md](../docs/FLASHING.md).
+Use ESP-IDF 6.0.1, `tools/board.sh rig-puppy build` and `tools/rig_host_tests.sh`. Configure local settings in `build-rig-puppy/sdkconfig`. Run `python3 tools/prepare_flash.py` to prepare your own build for the calibration-checking installer. See [the source build guide](../docs/FLASHING.md) and [development guide](../docs/DEVELOPMENT.md). This repository distributes source only.
 
-Body actions, stance, light control and camera use have prior Puppy field checks. Public USB provisioning and proxy default/failure paths have host tests. Record each firmware/board combination separately; a passing host test cannot replace on-device setup, service registration or observed motion.
+Body actions, stance, light control and camera use have prior Puppy field checks. Local USB provisioning and proxy default/failure paths have host tests. Record each firmware/board combination separately; a passing host test cannot replace on-device setup, service registration or observed motion.

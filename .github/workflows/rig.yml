@@ -3,7 +3,6 @@ name: RIG-Puppy
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
 
 permissions:
@@ -33,13 +32,12 @@ jobs:
         run: |
           apt-get update -qq
           apt-get install -y -qq --no-install-recommends libmbedtls-dev pkg-config
-      - name: Build public Puppy image and package
+      - name: Build Puppy from source
         working-directory: esp32
         run: |
           . "$IDF_PATH/export.sh" > /dev/null
-          version=0.0.0-dev
-          if [[ "$GITHUB_REF_TYPE" == tag ]]; then version="${GITHUB_REF_NAME#v}"; fi
-          tools/build_release.sh "$version"
+          tools/board.sh rig-puppy build
+          python3 tools/prepare_flash.py
       - name: Run SDK and RIG host tests
         working-directory: esp32
         run: |
