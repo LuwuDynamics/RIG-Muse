@@ -4,7 +4,7 @@
 
 [English](README.md) · [源码编译与烧录](docs/FLASHING.md) · [代码修改指南](docs/DEVELOPMENT.md) · [技术文档](esp32/README_RIG.md)
 
-<p align="center"><a href="docs/media/puppy-greeting.mp4"><img src="docs/media/puppy-greeting.gif" width="300" alt="Puppy 抬起前爪招手，然后回到站姿"></a><br><em>Muse 控制真机 Puppy 打招呼。点击查看 MP4。</em></p>
+<p align="center"><a href="docs/media/puppy-greeting.mp4"><img src="docs/media/puppy-greeting.gif" width="300" alt="Puppy 招手打招呼，配合动态眼睛表情"></a><br><em>Muse 控制真机 Puppy 打招呼。无声循环预览，点击查看 MP4。</em></p>
 
 ## 我们的目标
 

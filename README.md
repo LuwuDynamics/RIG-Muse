@@ -5,8 +5,8 @@
 [中文说明](README.zh-CN.md) · [Build from source](docs/FLASHING.md) · [Development guide](docs/DEVELOPMENT.md) · [Technical reference](esp32/README_RIG.md)
 
 <p align="center">
-  <a href="docs/media/puppy-greeting.mp4"><img src="docs/media/puppy-greeting.gif" width="300" alt="Puppy raises a front paw, waves and returns to standing"></a>
-  <br><em>Muse-triggered greeting on a real Puppy. <a href="docs/media/puppy-greeting.mp4">Watch the MP4</a>.</em>
+  <a href="docs/media/puppy-greeting.mp4"><img src="docs/media/puppy-greeting.gif" width="300" alt="Puppy waves hello with animated eyes"></a>
+  <br><em>Muse-triggered greeting on a real Puppy. Silent, looping preview. <a href="docs/media/puppy-greeting.mp4">Watch the MP4</a>.</em>
 </p>
 
 RIG-Muse connects Muse to a small physical companion that can greet you, move, show expressions, react to handling and share its camera view. It runs directly on the Puppy's ESP32-S3, using Meta's open-source [Muse Gadget SDK](https://github.com/facebookincubator/muse-gadget-sdk), without a separate Linux gateway.
