@@ -8,20 +8,22 @@ class SensorsGaitTest(unittest.TestCase):
 #include <cassert>
 #include <cstdlib>
 #include <cmath>
+#include <type_traits>
+// Match the vendor floating-point abs semantics on libstdc++ and libc++.
+using std::abs;
 #define PI 3.14159265358979323846
 extern "C" {
 #include "puppy_gait.h"
 }
 struct Motor{int ZeroPos,DesPos;}motor[5];
 float vx,vyaw,angle1,angle2,angle3,angle4,angle5;int control_mode;
+static_assert(std::is_same_v<decltype(abs(vx)), float>);
 float l_p[][5]={{3*PI/4,3*PI/4,3*PI/4,3*PI/4,PI/4},{-PI/4,-PI/4,-PI/4,-PI/4,PI/4},{-PI/4,3*PI/4,3*PI/4,-PI/4,PI/4},{3*PI/4,-PI/4,-PI/4,3*PI/4,PI/4}};
 void set_motor_angle(float,float,float,float,float){}
 #include "puppy_gait_reference.inc"
 int main(int argc,char **argv){assert(argc==3);int forward=atoi(argv[1]),turn=atoi(argv[2]);vx=int(2.2*forward);vyaw=int(2.8*turn);
  const int zero[5]={2376,637,2334,511,1505};for(int i=0;i<5;++i)motor[i].ZeroPos=zero[i];
- for(unsigned t=0;t<1000;++t){move();int out[5];assert(puppy_gait_target(forward,turn,t,zero,out));// C and C++ libm/intermediate float rounding can differ at integer boundaries.
- // Require the same phase/trajectory within one servo position count.
- for(int i=0;i<5;++i)assert(abs(out[i]-motor[i].DesPos)<=1);}
+ for(unsigned t=0;t<1000;++t){move();int out[5];assert(puppy_gait_target(forward,turn,t,zero,out));for(int i=0;i<5;++i)assert(out[i]==motor[i].DesPos);}
 }
 '''
   imu=r'''
